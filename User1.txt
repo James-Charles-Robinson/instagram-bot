@@ -1,0 +1,12 @@
+email or username = 
+password = 
+max wait time (sec) = 10
+rest period (sec) = 1200
+rest chance (%) = 15
+unfollow chance (%) = 15
+unfollow amount = 7
+stalk chance (%) = 30
+stalk amount = 10
+follow chance (%) = 30
+hashtags = #like4likes, #likeforlikes, #follow4follow, #followforfollow
+run amount = 50
