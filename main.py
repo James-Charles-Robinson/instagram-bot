@@ -4,10 +4,12 @@ import time
 import random
 import os
 
+# main class
 class autoInsta:
     
     def __init__(self, path):
         
+        # Opens settings file and assigns values
         with open(path, "r") as f:
             settings = f.readlines()
             settings = [setting.split("= ")[1].replace("\n", "") for setting in settings]
@@ -25,11 +27,12 @@ class autoInsta:
         self.hashtags = settings[10].split(", ")
         self.runamount = int(settings[11])
 
-
+    # waits with random time
     def wait(self):
         self.driver.implicitly_wait(10)
         time.sleep(random.randint(0, self.maxwait))
-
+    
+    # logs in and starts the browser
     def login(self):
 
         userAgent = "Mozilla/5.0 (Linux; Android 7.0; SM-G892A Build/NRD90M; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/60.0.3112.107 Mobile Safari/537.36"
@@ -41,6 +44,7 @@ class autoInsta:
         self.driver.get("https://www.instagram.com/accounts/login/")
         self.wait()
         
+        # enters all the needed info
         usernameInput = self.driver.find_element_by_xpath(
             "//input[@name='username']")
         usernameInput.send_keys(self.username)
@@ -56,6 +60,7 @@ class autoInsta:
         loginButton.click()
         self.wait()
 
+    # clicks the Not Now button of the pop up
     def popup(self):
         try:
             notNow = self.driver.find_element_by_xpath(
@@ -65,14 +70,17 @@ class autoInsta:
         except Exception as e:
             print(e)
 
+    # searches for the givin hastag
     def search(self, term):
         self.wait()
+        # clicks the button on the bottom row
         button = self.driver.find_element_by_xpath(
             "//a[@href='/explore/']")
         button.click()
         self.wait()
         self.wait()
-
+        
+        # clicks on the search bar and types
         bar = self.driver.find_element_by_xpath(
             "//input[@type='search']")
         bar.send_keys(term)
@@ -80,19 +88,23 @@ class autoInsta:
         bar.send_keys(Keys.RETURN)
         self.wait()
         
+        # clicks one of the top 3 results
         links = self.driver.find_elements_by_xpath('//a[@href]')
-        link = links[random.randint(0,1)].find_element_by_xpath('.//*')
+        link = links[random.randint(0,2)].find_element_by_xpath('.//*')
         link.click()
 
+    # scrolls down the results,pics random posts and likes or follows them
     def explore(self, cycles):
         run = True
         while cycles > 0:
             self.wait()
             for i in range(1, random.randint(4, 8)):
+                # scrolls down the page a little randomly
                 height = self.driver.execute_script("return document.body.scrollHeight")
                 self.driver.execute_script("window.scrollTo(0," + str(height-random.randint(400, 1000)) + ")")
                 self.wait()
             try:
+                # clicks on one of the pictures and likes it
                 hrefs = self.driver.find_elements_by_tag_name("a")
                 hrefs = [elem.get_attribute("href") for elem in hrefs]
                 href = hrefs[len(hrefs)-random.randint(7, 20)]
@@ -107,6 +119,7 @@ class autoInsta:
             self.wait()
             if random.randint(1, 100) <= self.followchance:
                 try:
+                    # follows them
                     self.driver.find_element_by_xpath("//button[@type='button']").click()
                     print("Followed")
                     self.wait()
@@ -116,17 +129,21 @@ class autoInsta:
                     print("Follow button not found")
             self.driver.back()
 
+    # goes back to profile and unfollows some users
     def unfollow(self, cycles):
         self.wait()
         self.driver.find_elements_by_xpath("//span[@role='link']")[-1].click()
         self.wait()
         self.driver.find_elements_by_xpath("//li")[2].click()
         height = 1500
+        # starts 1500 pixels down to unfollow people followed a few days/hours ago
         while cycles > 0:
             self.wait()
+            # scrolls
             followed = self.driver.find_elements_by_xpath("//button[@type='button']")
             self.driver.execute_script("window.scrollTo(0," + str(height) + ")")
             try:
+                # picks a random person and unfollows
                 self.wait()
                 followed[random.randint(int(1+(height/50)), int(5+(height/50)))].click()
                 self.wait()
@@ -139,6 +156,7 @@ class autoInsta:
             height += random.randint(50, 100)
         self.wait()
 
+    # goes onto someones account and likes some of thier posts, also known as stalking
     def likeProfile(self, cycles):
         self.wait()
         self.driver.find_elements_by_xpath("//span[@role='link']")[-1].click()
@@ -152,9 +170,11 @@ class autoInsta:
                 self.wait()
                 followed = self.driver.find_elements_by_xpath("//a[@class='FPmhX notranslate  _0imsa ']")
                 followed[random.randint(int(1+(height/50)), int(5+(height/50)))].click()
+                # picks random follower
                 self.wait()
                 for i in range(1, random.randint(2, 4)):
                     try:
+                        # clicks on thier posts and likes them
                         images = self.driver.find_elements_by_xpath("//*[@class='_9AhH0']")
                         images[i].click()
                         self.wait()
@@ -175,6 +195,7 @@ class autoInsta:
                 height = 0
             height += random.randint(50, 100)
 
+    # logs out the user and closes the browser to emulate the user doing another task
     def rest(self, length):
         print("Resting")
         self.wait()
@@ -183,16 +204,18 @@ class autoInsta:
         print("Resting done")
         self.login()
         self.popup()
-        
+
+# main section of the program
 files = os.listdir(".")
 files = [file for file in files if ".txt" in file]
 print(files)
 
+# creates a list of users accounts and details so multiple accounts can be done at a time
 bots = []
 for file in files:
-    
     bot = autoInsta(file)
     bots.append(bot)
+    
 while True:
     bot = bots[0]
     bot.login()
