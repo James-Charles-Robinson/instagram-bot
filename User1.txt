@@ -8,5 +8,7 @@ unfollow amount = 7
 stalk chance (%) = 30
 stalk amount = 10
 follow chance (%) = 30
+follow specific amount = 3
+follow specific chance (%) = 20
 hashtags = #like4likes, #likeforlikes, #follow4follow, #followforfollow
 run amount = 50
