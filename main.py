@@ -17,6 +17,8 @@ class autoInsta:
         self.username = str(settings[0])
         self.password = str(settings[1])
         self.maxwait = int(settings[2])
+        if self.maxwait < 3:
+            self.maxwait = 3
         self.restperiod = int(settings[3])
         self.restchance = int(settings[4])
         self.unfollowchance = int(settings[5])
@@ -24,8 +26,10 @@ class autoInsta:
         self.stalkchance = int(settings[7])
         self.stalkamount = int(settings[8])
         self.followchance = int(settings[9])
-        self.hashtags = settings[10].split(", ")
-        self.runamount = int(settings[11])
+        self.followspecificamount = int(settings[10])
+        self.followspecificchance = int(settings[11])
+        self.hashtags = settings[12].split(", ")
+        self.runamount = int(settings[13])
 
     # waits with random time
     def wait(self):
@@ -71,7 +75,7 @@ class autoInsta:
             print(e)
 
     # searches for the givin hastag
-    def search(self, term):
+    def search(self, term, reach):
         self.wait()
         # clicks the button on the bottom row
         button = self.driver.find_element_by_xpath(
@@ -88,9 +92,9 @@ class autoInsta:
         bar.send_keys(Keys.RETURN)
         self.wait()
         
-        # clicks one of the top 3 results
+        # clicks one of the top results
         links = self.driver.find_elements_by_xpath('//a[@href]')
-        link = links[random.randint(0,2)].find_element_by_xpath('.//*')
+        link = links[random.randint(0, reach)].find_element_by_xpath('.//*')
         link.click()
 
     # scrolls down the results,pics random posts and likes or follows them
@@ -205,9 +209,28 @@ class autoInsta:
         self.login()
         self.popup()
 
+    def followSpecificUser(self, amount):
+        with open("AccountsToFollow.txt", "r") as f:
+            users = f.readlines()
+        users = [user.replace("\n", "") for user in users]
+        if len(users) > 0:
+            for i in range(amount):
+                try:
+                    user = users[random.randint(0, len(users)-1)]
+                    users.remove(user)
+                    self.search(user, 0)
+                    self.wait()
+                    self.driver.find_element_by_xpath("//button[contains(text(),'Follow')]").click()
+                    self.wait()
+                except:
+                    pass
+            with open("AccountsToFollow.txt", "w") as f:
+                for user in users:
+                    f.write(user + "\n")
+
 # main section of the program
 files = os.listdir(".")
-files = [file for file in files if ".txt" in file]
+files = [file for file in files if ".txt" in file and "User" in file]
 print(files)
 
 # creates a list of users accounts and details so multiple accounts can be done at a time
@@ -217,19 +240,22 @@ for file in files:
     bots.append(bot)
     
 while True:
-    bot = bots[0]
-    bot.login()
-    bot.popup()
-    for i in range(0, bot.runamount):
-        print("EXPLORING")
-        bot.search(random.choice(bot.hashtags))
-        bot.explore(random.randint(4, 6))
-        if random.randint(1, 100) <= bot.unfollowchance:
-            print("UNFOLLOW")
-            bot.unfollow(random.randint(int(bot.unfollowamount * 0.8), int(bot.unfollowamount * 1.2)))
-        if random.randint(1, 100) <= bot.restchance:
-            bot.rest(random.randint(int(bot.restperiod * 0.8), int(bot.restperiod * 1.2)))
-        if random.randint(1, 100) <= bot.stalkchance:
-            print("STALKING")
-            bot.likeProfile(random.randint(int(bot.stalkamount * 0.8), int(bot.stalkamount * 1.2)))
-    self.driver.quit()
+    for bot in bots:
+        bot.login()
+        bot.popup()
+        for i in range(0, bot.runamount):
+            print("EXPLORING")
+            bot.search(random.choice(bot.hashtags), 2)
+            bot.explore(random.randint(4, 6))
+            if random.randint(1, 100) <= bot.unfollowchance:
+                print("UNFOLLOW")
+                bot.unfollow(random.randint(int(bot.unfollowamount * 0.8), int(bot.unfollowamount * 1.2)))
+            if random.randint(1, 100) <= bot.restchance:
+                bot.rest(random.randint(int(bot.restperiod * 0.8), int(bot.restperiod * 1.2)))
+            if random.randint(1, 100) <= bot.stalkchance:
+                print("STALKING")
+                bot.likeProfile(random.randint(int(bot.stalkamount * 0.8), int(bot.stalkamount * 1.2)))
+            if random.randint(1, 100) <= bot.followspecificchance:
+                print("FOLLOWING SPECIFIC USERS")
+                bot.followSpecificUser(bot.followspecificamount)
+        self.driver.quit()
