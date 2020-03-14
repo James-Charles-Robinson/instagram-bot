@@ -209,6 +209,7 @@ class autoInsta:
         self.login()
         self.popup()
 
+    # follows specific users in the text file
     def followSpecificUser(self, amount):
         with open("AccountsToFollow.txt", "r") as f:
             users = f.readlines()
